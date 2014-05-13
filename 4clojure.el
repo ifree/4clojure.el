@@ -205,5 +205,27 @@ buffer name"
                  (cadr result))
       (message "%s" (cadr result)))))
 
+;;;###autoload
+(defun 4clojure-login (user pwd)
+  "Login to 4clojure"
+  (interactive "sWhat's your name? \nsAnd your password ")
+  (request
+   "http://www.4clojure.com/login"
+   :type "POST"
+   :headers '(
+              ("User-Agent" . "Mozilla/5.0 (X11; Linux x86_64; rv:28.0) Gecko/20100101  Firefox/28.0")
+              ("Referer" . "http://www.4clojure.com/login")
+              )
+   :data `(("user" . ,user) ("pwd" . ,pwd))
+   ;When user login successful, 4clojure will redirect user to main page, 
+   ;If `request-backend` is `curl`, we will get response code 400 (4 clojure's behavior) or 500 (see http://curl.haxx.se/mail/tracker-2012-01/0018.html
+   ;If `request-backend` is `url-retrieve`, we will get response 302 (it does not process redirection
+   :status-code '((404 . (lambda (&rest _) (message "login successful!")))
+                  (302 . (lambda (&rest _) (message "login successful")))
+                  (500 . (lambda (&rest _) (message "login successful")))
+                  )
+   )
+  )
+
 (provide '4clojure)
 ;;; 4clojure.el ends here
